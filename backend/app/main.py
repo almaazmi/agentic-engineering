@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, status
+from typing import Annotated
+
+from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
@@ -38,8 +40,12 @@ def health() -> HealthResponse:
 
 
 @app.get("/api/tasks", response_model=list[Task], tags=["tasks"])
-def list_tasks() -> list[Task]:
-    return task_service.list_tasks()
+def list_tasks(
+    completed: bool | None = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> list[Task]:
+    return task_service.list_tasks(completed=completed, limit=limit, offset=offset)
 
 
 @app.post(

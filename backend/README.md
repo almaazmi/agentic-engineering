@@ -26,7 +26,7 @@ pytest                # tests + coverage (>=85%)
 | Method | Path                          | Description            |
 | ------ | ----------------------------- | ---------------------- |
 | GET    | `/health`                     | Liveness/readiness     |
-| GET    | `/api/tasks`                  | List tasks             |
+| GET    | `/api/tasks`                  | List tasks (`completed`, `limit`, and `offset` query params) |
 | POST   | `/api/tasks`                  | Create a task          |
 | GET    | `/api/tasks/{id}`             | Get a task             |
 | POST   | `/api/tasks/{id}/complete`    | Mark a task complete   |
