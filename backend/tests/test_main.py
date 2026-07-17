@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import logging
+
+from app.main import settings
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -13,6 +17,33 @@ def test_health(client: TestClient) -> None:
     assert body["status"] == "ok"
     assert body["service"]
     assert body["version"]
+
+
+def test_access_log_excludes_sensitive_data(client: TestClient, caplog, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "environment", "production")
+    caplog.set_level(logging.INFO, logger="app.access")
+
+    response = client.post(
+        "/api/tasks?token=do-not-log",
+        json={"title": "body-do-not-log"},
+        headers={"Authorization": "header-do-not-log"},
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["title"] == "body-do-not-log"
+    access_log_messages = [
+        record.message for record in caplog.records if record.name == "app.access"
+    ]
+    assert len(access_log_messages) == 1
+    access_log = access_log_messages[0]
+    payload = json.loads(access_log)
+    assert payload["method"] == "POST"
+    assert payload["path"] == "/api/tasks"
+    assert payload["status"] == status.HTTP_201_CREATED
+    assert isinstance(payload["duration_ms"], float)
+    assert "do-not-log" not in access_log
+    assert "body-do-not-log" not in access_log
+    assert "header-do-not-log" not in access_log
 
 
 def test_create_and_list_task(client: TestClient) -> None:
