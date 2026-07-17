@@ -28,7 +28,9 @@ def test_request_logging_preserves_response_and_omits_query_string(
     response = client.get("/health?token=do-not-log")
 
     assert response.status_code == status.HTTP_200_OK
-    access_log = next(record.message for record in caplog.records if record.name == "app.access")
+    access_logs = [record.message for record in caplog.records if record.name == "app.access"]
+    assert access_logs
+    access_log = access_logs[0]
     payload = json.loads(access_log)
     assert payload["method"] == "GET"
     assert payload["path"] == "/health"

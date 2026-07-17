@@ -46,7 +46,7 @@ async def log_request(request: Request, call_next: RequestResponseEndpoint) -> R
         return response
     finally:
         duration_ms = round((perf_counter() - started) * 1000, 2)
-        if settings.environment.lower() == "production":
+        if settings.environment == "production":
             access_logger.info(
                 json.dumps(
                     {
