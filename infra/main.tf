@@ -83,6 +83,27 @@ resource "azurerm_container_app" "backend" {
         name  = "APP_ENVIRONMENT"
         value = var.environment
       }
+
+      liveness_probe {
+        failure_count_threshold = 3
+        initial_delay           = 10
+        interval_seconds        = 10
+        path                    = "/health"
+        port                    = 8000
+        timeout                 = 5
+        transport               = "HTTP"
+      }
+
+      readiness_probe {
+        failure_count_threshold = 3
+        initial_delay           = 10
+        interval_seconds        = 10
+        path                    = "/health"
+        port                    = 8000
+        success_count_threshold = 1
+        timeout                 = 5
+        transport               = "HTTP"
+      }
     }
   }
 
@@ -138,6 +159,27 @@ resource "azurerm_container_app" "frontend" {
       env {
         name  = "BACKEND_URL"
         value = "https://${azurerm_container_app.backend.ingress[0].fqdn}"
+      }
+
+      liveness_probe {
+        failure_count_threshold = 3
+        initial_delay           = 10
+        interval_seconds        = 10
+        path                    = "/"
+        port                    = 3000
+        timeout                 = 5
+        transport               = "HTTP"
+      }
+
+      readiness_probe {
+        failure_count_threshold = 3
+        initial_delay           = 10
+        interval_seconds        = 10
+        path                    = "/"
+        port                    = 3000
+        success_count_threshold = 1
+        timeout                 = 5
+        transport               = "HTTP"
       }
     }
   }
