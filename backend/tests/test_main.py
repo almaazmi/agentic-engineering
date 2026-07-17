@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import logging
+
+from app.main import settings
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -13,6 +17,24 @@ def test_health(client: TestClient) -> None:
     assert body["status"] == "ok"
     assert body["service"]
     assert body["version"]
+
+
+def test_request_logging_preserves_response_and_omits_query_string(
+    client: TestClient, caplog, monkeypatch
+) -> None:
+    monkeypatch.setattr(settings, "environment", "production")
+    caplog.set_level(logging.INFO, logger="app.access")
+
+    response = client.get("/health?token=do-not-log")
+
+    assert response.status_code == status.HTTP_200_OK
+    access_log = next(record.message for record in caplog.records if record.name == "app.access")
+    payload = json.loads(access_log)
+    assert payload["method"] == "GET"
+    assert payload["path"] == "/health"
+    assert payload["status"] == status.HTTP_200_OK
+    assert isinstance(payload["duration_ms"], float)
+    assert "do-not-log" not in access_log
 
 
 def test_create_and_list_task(client: TestClient) -> None:

@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
+import json
+import logging
+from time import perf_counter
+
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app import __version__
 from app.config import get_settings
@@ -11,6 +18,7 @@ from app.models import HealthResponse, Task, TaskCreate, TaskUpdate
 from app.services import TaskNotFoundError, task_service
 
 settings = get_settings()
+access_logger = logging.getLogger("app.access")
 
 app = FastAPI(
     title="Agentic Engineering API",
@@ -25,6 +33,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def log_request(request: Request, call_next: RequestResponseEndpoint) -> Response:
+    """Log request metadata without including headers, query strings, or bodies."""
+    started = perf_counter()
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    finally:
+        duration_ms = round((perf_counter() - started) * 1000, 2)
+        if settings.environment.lower() == "production":
+            access_logger.info(
+                json.dumps(
+                    {
+                        "method": request.method,
+                        "path": request.url.path,
+                        "status": status_code,
+                        "duration_ms": duration_ms,
+                    },
+                    separators=(",", ":"),
+                )
+            )
+        else:
+            access_logger.info(
+                "%s %s %s %.2fms",
+                request.method,
+                request.url.path,
+                status_code,
+                duration_ms,
+            )
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
