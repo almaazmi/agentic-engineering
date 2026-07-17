@@ -34,6 +34,30 @@ def test_complete_task(client: TestClient) -> None:
     assert completed.json()["completed"] is True
 
 
+def test_update_task(client: TestClient) -> None:
+    task_id = client.post(
+        "/api/tasks", json={"title": "Old title", "description": "Old description"}
+    ).json()["id"]
+    updated = client.patch(
+        f"/api/tasks/{task_id}",
+        json={"title": "New title", "description": "New description"},
+    )
+    assert updated.status_code == status.HTTP_200_OK
+    assert updated.json()["title"] == "New title"
+    assert updated.json()["description"] == "New description"
+
+
+def test_update_missing_task_returns_404(client: TestClient) -> None:
+    response = client.patch("/api/tasks/999", json={"title": "New title"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_update_task_validation_error(client: TestClient) -> None:
+    task_id = client.post("/api/tasks", json={"title": "Existing"}).json()["id"]
+    response = client.patch(f"/api/tasks/{task_id}", json={"title": ""})
+    assert response.status_code == 422
+
+
 def test_get_missing_task_returns_404(client: TestClient) -> None:
     response = client.get("/api/tasks/999")
     assert response.status_code == status.HTTP_404_NOT_FOUND

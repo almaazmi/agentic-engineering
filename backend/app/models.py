@@ -18,6 +18,13 @@ class TaskCreate(BaseModel):
     description: str = Field(default="", max_length=2000)
 
 
+class TaskUpdate(BaseModel):
+    """Payload for updating a task."""
+
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+
+
 class Task(TaskCreate):
     """A task tracked by the service."""
 
