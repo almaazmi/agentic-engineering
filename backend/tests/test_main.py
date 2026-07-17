@@ -19,9 +19,7 @@ def test_health(client: TestClient) -> None:
     assert body["version"]
 
 
-def test_access_logging_json_excludes_sensitive_data(
-    client: TestClient, caplog, monkeypatch
-) -> None:
+def test_access_log_excludes_sensitive_data(client: TestClient, caplog, monkeypatch) -> None:
     monkeypatch.setattr(settings, "environment", "production")
     caplog.set_level(logging.INFO, logger="app.access")
 
