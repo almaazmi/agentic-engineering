@@ -19,9 +19,7 @@ def test_health(client: TestClient) -> None:
     assert body["version"]
 
 
-def test_request_logging_preserves_response_and_omits_query_string(
-    client: TestClient, caplog, monkeypatch
-) -> None:
+def test_access_logging_format(client: TestClient, caplog, monkeypatch) -> None:
     monkeypatch.setattr(settings, "environment", "production")
     caplog.set_level(logging.INFO, logger="app.access")
 
@@ -29,7 +27,7 @@ def test_request_logging_preserves_response_and_omits_query_string(
 
     assert response.status_code == status.HTTP_200_OK
     access_logs = [record.message for record in caplog.records if record.name == "app.access"]
-    assert access_logs
+    assert len(access_logs) == 1
     access_log = access_logs[0]
     payload = json.loads(access_log)
     assert payload["method"] == "GET"
