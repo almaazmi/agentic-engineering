@@ -55,7 +55,6 @@ async def log_request(request: Request, call_next: RequestResponseEndpoint) -> R
                         "status": status_code,
                         "duration_ms": duration_ms,
                     },
-                    separators=(",", ":"),
                 )
             )
         else:
