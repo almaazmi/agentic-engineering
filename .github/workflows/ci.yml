@@ -49,6 +49,25 @@ jobs:
       - name: Test (pytest + coverage gate)
         run: pytest
 
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          report = Path("coverage.xml")
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          if report.exists():
+              line_rate = float(ET.parse(report).getroot().attrib["line-rate"]) * 100
+              content = f"### Backend coverage\n\n**{line_rate:.2f}%** line coverage\n"
+          else:
+              content = "### Backend coverage\n\nCoverage report was not generated.\n"
+          with summary.open("a", encoding="utf-8") as output:
+              output.write(content)
+          PY
+
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
