@@ -104,7 +104,7 @@ jobs:
         run: az acr login --name ${{ steps.tf.outputs.acr_name }}
 
       - name: Build & push backend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./backend
           push: true
@@ -115,7 +115,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=backend
 
       - name: Build & push frontend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./frontend
           push: true
