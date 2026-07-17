@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.config import get_settings
-from app.models import HealthResponse, Task, TaskCreate
+from app.models import HealthResponse, Task, TaskCreate, TaskUpdate
 from app.services import TaskNotFoundError, task_service
 
 settings = get_settings()
@@ -64,6 +64,14 @@ def get_task(task_id: int) -> Task:
 def complete_task(task_id: int) -> Task:
     try:
         return task_service.complete_task(task_id)
+    except TaskNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@app.patch("/api/tasks/{task_id}", response_model=Task, tags=["tasks"])
+def update_task(task_id: int, payload: TaskUpdate) -> Task:
+    try:
+        return task_service.update_task(task_id, payload)
     except TaskNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 

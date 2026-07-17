@@ -9,7 +9,7 @@ from __future__ import annotations
 from itertools import count
 from threading import Lock
 
-from app.models import Task, TaskCreate
+from app.models import Task, TaskCreate, TaskUpdate
 
 
 class TaskNotFoundError(Exception):
@@ -51,6 +51,15 @@ class TaskService:
             if task_id not in self._tasks:
                 raise TaskNotFoundError(task_id)
             task = self._tasks[task_id].model_copy(update={"completed": True})
+            self._tasks[task_id] = task
+            return task
+
+    def update_task(self, task_id: int, payload: TaskUpdate) -> Task:
+        with self._lock:
+            if task_id not in self._tasks:
+                raise TaskNotFoundError(task_id)
+            updates = payload.model_dump(exclude_unset=True, exclude_none=True)
+            task = self._tasks[task_id].model_copy(update=updates)
             self._tasks[task_id] = task
             return task
 
