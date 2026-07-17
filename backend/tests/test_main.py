@@ -19,7 +19,9 @@ def test_health(client: TestClient) -> None:
     assert body["version"]
 
 
-def test_access_logging_format(client: TestClient, caplog, monkeypatch) -> None:
+def test_access_logging_json_excludes_sensitive_data(
+    client: TestClient, caplog, monkeypatch
+) -> None:
     monkeypatch.setattr(settings, "environment", "production")
     caplog.set_level(logging.INFO, logger="app.access")
 
@@ -31,9 +33,11 @@ def test_access_logging_format(client: TestClient, caplog, monkeypatch) -> None:
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["title"] == "body-do-not-log"
-    access_logs = [record.message for record in caplog.records if record.name == "app.access"]
-    assert len(access_logs) == 1
-    access_log = access_logs[0]
+    access_log_messages = [
+        record.message for record in caplog.records if record.name == "app.access"
+    ]
+    assert len(access_log_messages) == 1
+    access_log = access_log_messages[0]
     payload = json.loads(access_log)
     assert payload["method"] == "POST"
     assert payload["path"] == "/api/tasks"

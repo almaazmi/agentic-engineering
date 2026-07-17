@@ -39,12 +39,17 @@ app.add_middleware(
 async def log_request(request: Request, call_next: RequestResponseEndpoint) -> Response:
     """Log request metadata without including headers, query strings, or bodies."""
     started = perf_counter()
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code: int | None = None
     try:
         response = await call_next(request)
         status_code = response.status_code
         return response
+    except Exception:
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        raise
     finally:
+        if status_code is None:
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         duration_ms = round((perf_counter() - started) * 1000, 2)
         if settings.environment == "production":
             access_logger.info(
