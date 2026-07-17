@@ -28,9 +28,22 @@ class TaskService:
         self._ids = count(1)
         self._lock = Lock()
 
-    def list_tasks(self) -> list[Task]:
+    def list_tasks(
+        self,
+        completed: bool | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[Task]:
         with self._lock:
-            return sorted(self._tasks.values(), key=lambda task: task.id)
+            tasks = sorted(
+                (
+                    task
+                    for task in self._tasks.values()
+                    if completed is None or task.completed == completed
+                ),
+                key=lambda task: task.id,
+            )
+            return tasks[offset : offset + limit]
 
     def create_task(self, payload: TaskCreate) -> Task:
         with self._lock:

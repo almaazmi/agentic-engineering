@@ -27,6 +27,31 @@ def test_create_and_list_task(client: TestClient) -> None:
     assert len(listed.json()) == 1
 
 
+def test_list_tasks_filters_and_paginates(client: TestClient) -> None:
+    task_ids = [
+        client.post("/api/tasks", json={"title": f"Task {index}"}).json()["id"]
+        for index in range(3)
+    ]
+    client.post(f"/api/tasks/{task_ids[1]}/complete")
+
+    filtered = client.get("/api/tasks", params={"completed": "true"})
+    assert [task["id"] for task in filtered.json()] == [task_ids[1]]
+
+    paginated = client.get("/api/tasks", params={"limit": 1, "offset": 1})
+    assert [task["id"] for task in paginated.json()] == [task_ids[1]]
+
+
+def test_list_tasks_rejects_invalid_pagination(client: TestClient) -> None:
+    for params in (
+        {"completed": "not-a-boolean"},
+        {"limit": 0},
+        {"limit": 101},
+        {"offset": -1},
+    ):
+        response = client.get("/api/tasks", params=params)
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
 def test_complete_task(client: TestClient) -> None:
     task_id = client.post("/api/tasks", json={"title": "Ship it"}).json()["id"]
     completed = client.post(f"/api/tasks/{task_id}/complete")

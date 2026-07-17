@@ -14,6 +14,17 @@ def test_create_assigns_incrementing_ids() -> None:
     assert (first.id, second.id) == (1, 2)
 
 
+def test_list_filters_and_paginates_in_id_order() -> None:
+    service = TaskService()
+    first = service.create_task(TaskCreate(title="a"))
+    second = service.create_task(TaskCreate(title="b"))
+    service.complete_task(second.id)
+    third = service.create_task(TaskCreate(title="c"))
+
+    assert [task.id for task in service.list_tasks(completed=False)] == [first.id, third.id]
+    assert [task.id for task in service.list_tasks(limit=1, offset=1)] == [second.id]
+
+
 def test_complete_marks_task_done() -> None:
     service = TaskService()
     task = service.create_task(TaskCreate(title="a"))
