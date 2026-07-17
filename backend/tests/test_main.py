@@ -23,18 +23,25 @@ def test_access_logging_format(client: TestClient, caplog, monkeypatch) -> None:
     monkeypatch.setattr(settings, "environment", "production")
     caplog.set_level(logging.INFO, logger="app.access")
 
-    response = client.get("/health?token=do-not-log")
+    response = client.post(
+        "/api/tasks?token=do-not-log",
+        json={"title": "body-do-not-log"},
+        headers={"Authorization": "header-do-not-log"},
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["title"] == "body-do-not-log"
     access_logs = [record.message for record in caplog.records if record.name == "app.access"]
     assert len(access_logs) == 1
     access_log = access_logs[0]
     payload = json.loads(access_log)
-    assert payload["method"] == "GET"
-    assert payload["path"] == "/health"
-    assert payload["status"] == status.HTTP_200_OK
+    assert payload["method"] == "POST"
+    assert payload["path"] == "/api/tasks"
+    assert payload["status"] == status.HTTP_201_CREATED
     assert isinstance(payload["duration_ms"], float)
     assert "do-not-log" not in access_log
+    assert "body-do-not-log" not in access_log
+    assert "header-do-not-log" not in access_log
 
 
 def test_create_and_list_task(client: TestClient) -> None:
