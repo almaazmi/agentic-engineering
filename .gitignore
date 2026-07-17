@@ -1,0 +1,43 @@
+# ---- Python (backend) ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ---- Node (frontend) ----
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+coverage/
+
+# ---- Environment ----
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# ---- Terraform (infra) ----
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.auto.tfvars
+override.tf
+override.tf.json
+# .terraform.lock.hcl is intentionally committed.
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

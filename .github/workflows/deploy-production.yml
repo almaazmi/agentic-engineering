@@ -1,0 +1,29 @@
+name: Deploy Production
+
+# Gated release. The "production" GitHub Environment enforces manual approval
+# (configure required reviewers in Settings > Environments > production).
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (defaults to this commit's SHA)."
+        required: false
+        type: string
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  production:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      image_tag: ${{ inputs.image_tag || github.sha }}
+    secrets: inherit

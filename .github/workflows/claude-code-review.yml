@@ -1,0 +1,52 @@
+name: Claude Code Review
+
+# Automated AI review posted on every non-draft PR.
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Check for Anthropic API key
+        id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY secret is not set — skipping Claude review. See README."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.key.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Claude review
+        if: steps.key.outputs.run == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}.
+            Focus on correctness, security, test coverage, and adherence to the
+            standards in CLAUDE.md. Post concise inline comments on specific lines
+            where useful and a short summary review. Approve only if it is genuinely
+            ready; otherwise request changes. Do not nitpick style that the linters
+            already enforce.
+          claude_args: "--max-turns 15"

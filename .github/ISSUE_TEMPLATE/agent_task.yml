@@ -1,0 +1,51 @@
+name: Agent task
+description: A well-scoped task to delegate to a coding agent (assign to Copilot, or mention @claude).
+title: "[Agent]: "
+labels: [agent, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for work you intend to hand to an autonomous agent. Then either
+        **assign the issue to Copilot** or comment **`@claude implement this`**.
+        Clear scope + acceptance criteria dramatically improve the result.
+  - type: input
+    id: goal
+    attributes:
+      label: Goal
+      description: What should exist when this is done?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [backend, frontend, infra, ci/cd, cross-cutting]
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & pointers
+      description: Relevant files, endpoints, prior art, constraints.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Behaviour X works
+        - [ ] Unit tests added and passing
+        - [ ] `ruff`, `mypy`, `pytest` (backend) / `lint`, `typecheck`, `test`, `build` (frontend) pass
+        - [ ] No new high/critical vulnerabilities
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Guardrails
+      options:
+        - label: Keep the change small and focused (one PR).
+        - label: Do not modify unrelated files.
+        - label: Follow CLAUDE.md / copilot-instructions.md.

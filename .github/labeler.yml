@@ -1,0 +1,27 @@
+# Path-based PR labels (actions/labeler@v5 format).
+backend:
+  - changed-files:
+      - any-glob-to-any-file: ["backend/**"]
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: ["frontend/**"]
+
+infra:
+  - changed-files:
+      - any-glob-to-any-file: ["infra/**"]
+
+ci/cd:
+  - changed-files:
+      - any-glob-to-any-file: [".github/workflows/**"]
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ["**/*.md"]
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/pyproject.toml"
+          - "frontend/package.json"
+          - "frontend/package-lock.json"
