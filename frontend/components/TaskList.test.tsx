@@ -11,6 +11,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
       listTasks: vi.fn(),
       createTask: vi.fn(),
       completeTask: vi.fn(),
+      deleteTask: vi.fn(),
     },
   };
 });
@@ -49,5 +50,22 @@ describe("TaskList", () => {
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Unable to reach the backend API."),
     );
+  });
+
+  it("deletes a task and refreshes the list", async () => {
+    mockedApi.listTasks
+      .mockResolvedValueOnce([makeTask(1, false)])
+      .mockResolvedValueOnce([]);
+    mockedApi.deleteTask.mockResolvedValue(undefined);
+
+    render(<TaskList />);
+
+    expect(await screen.findByText("Task 1")).toBeInTheDocument();
+    const deleteButton = await screen.findByRole("button", { name: "Delete" });
+    deleteButton.click();
+
+    await waitFor(() => expect(mockedApi.deleteTask).toHaveBeenCalledWith(1));
+    await waitFor(() => expect(screen.queryByText("Task 1")).not.toBeInTheDocument());
+    expect(mockedApi.listTasks).toHaveBeenCalledTimes(2);
   });
 });

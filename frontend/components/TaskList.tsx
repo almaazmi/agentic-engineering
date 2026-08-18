@@ -38,6 +38,11 @@ export default function TaskList() {
     await refresh();
   }
 
+  async function handleDelete(id: number) {
+    await api.deleteTask(id);
+    await refresh();
+  }
+
   const summary = summarize(tasks);
 
   return (
@@ -67,6 +72,9 @@ export default function TaskList() {
                 {!task.completed && (
                   <button onClick={() => handleComplete(task.id)}>Done</button>
                 )}
+                <button type="button" onClick={() => handleDelete(task.id)}>
+                  Delete
+                </button>
               </li>
             ))}
           </ul>

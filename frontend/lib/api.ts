@@ -40,4 +40,5 @@ export const api = {
     }),
   completeTask: (id: number) =>
     request<Task>(`/api/tasks/${id}/complete`, { method: "POST" }),
+  deleteTask: (id: number) => request<void>(`/api/tasks/${id}`, { method: "DELETE" }),
 };
